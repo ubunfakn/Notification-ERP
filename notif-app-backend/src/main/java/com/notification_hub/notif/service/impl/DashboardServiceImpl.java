@@ -1,5 +1,6 @@
 package com.notification_hub.notif.service.impl;
 
+import com.notification_hub.notif.dto.DashboardResponse;
 import com.notification_hub.notif.repository.NotificationRepo;
 import com.notification_hub.notif.repository.NotificationRetryRepo;
 import com.notification_hub.notif.service.DashboardService;
@@ -12,4 +13,9 @@ public class DashboardServiceImpl implements DashboardService {
 
     private final NotificationRetryRepo notificationRetryRepo;
     private final NotificationRepo notificationRepo;
+
+    @Override
+    public DashboardResponse getDashBoardCounts() {
+        return null;
+    }
 }

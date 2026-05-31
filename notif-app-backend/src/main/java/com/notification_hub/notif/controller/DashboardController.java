@@ -16,6 +16,8 @@ public class DashboardController {
     @GetMapping("/api/dashboard")
     public ResponseEntity<DashboardResponse> getDashboardCounts() {
 
+        DashboardResponse dashboardResponse =
+                this.dashboardService.getDashBoardCounts();
         return ResponseEntity.ok(null);
     }
 }

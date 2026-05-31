@@ -38,16 +38,16 @@ public class Notification {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private NotificationStatus status;
+    private NotificationStatus status = NotificationStatus.PENDING;
 
     @Column(name = "total_retries")
-    private Integer totalRetries;
+    private Integer totalRetries = 0;
 
     @Column(name = "last_retried_at")
-    private LocalDateTime lastRetriedAt;
+    private LocalDateTime lastRetriedAt = null;
 
     @Column(name = "sent_at")
-    private LocalDateTime sentAt;
+    private LocalDateTime sentAt = null;
 
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)

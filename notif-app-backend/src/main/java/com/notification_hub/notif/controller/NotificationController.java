@@ -23,20 +23,20 @@ public class NotificationController {
     @PostMapping
     public ResponseEntity<?> createNotification(
             @Valid @RequestBody CreateNotificationRequest request) {
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(null);
+        NotificationResponse notificationResponse =
+                this.notificationService.createOrScheduleNotif(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(notificationResponse);
     }
 
     // Get all paginated Notification with filters
     @GetMapping
     public ResponseEntity<NotificationPageResponse> getAllAndFilterNotifications(
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size,
-            @RequestParam(required = false) NotificationStatus status,
-            @RequestParam(required = false) NotificationType type,
-            @RequestParam(required = false) String keyword) {
+            @ModelAttribute NotificationFilterRequest request) {
 
-        return ResponseEntity.ok(null);
+        NotificationPageResponse response =
+                this.notificationService.getAllFilteredNotifications(request);
+
+        return ResponseEntity.ok(response);
     }
 
     // Get notification by id
@@ -44,7 +44,9 @@ public class NotificationController {
     public ResponseEntity<NotificationResponse> getNotificationById(
             @PathVariable Long id) {
 
-        return ResponseEntity.ok(null);
+        NotificationResponse notificationResponse =
+                this.notificationService.getNotifById(id);
+        return ResponseEntity.ok(notificationResponse);
     }
 
     // Update Notification
@@ -53,6 +55,8 @@ public class NotificationController {
             @PathVariable Long id,
             @Valid @RequestBody CreateNotificationRequest request) {
 
+        NotificationResponse notificationResponse =
+                this.notificationService.updateNotif(id, request);
         return ResponseEntity.ok(null);
     }
 
@@ -61,6 +65,8 @@ public class NotificationController {
     public ResponseEntity<ApiResponse> deleteNotification(
             @PathVariable Long id) {
 
+        ApiResponse apiResponse =
+                this.notificationService.deleteNotifById(id);
         return ResponseEntity.ok(null);
     }
 
@@ -69,6 +75,8 @@ public class NotificationController {
     public ResponseEntity<NotificationRetryResponse> retryNotification(
             @PathVariable Long id) {
 
+        NotificationRetryResponse notificationRetryResponse =
+                this.notificationRetryService.retryNotification(id);
         return ResponseEntity.ok(null);
     }
 }
