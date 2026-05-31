@@ -1,0 +1,28 @@
+{
+  "name": "notification-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-redux": "^9.1.0",
+    "@reduxjs/toolkit": "^2.2.3",
+    "react-router-dom": "^6.23.0",
+    "axios": "^1.6.8",
+    "primereact": "^10.6.6",
+    "primeicons": "^7.0.0",
+    "primeflex": "^3.3.1",
+    "recharts": "^2.12.7",
+    "react-toastify": "^10.0.5"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.2.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}

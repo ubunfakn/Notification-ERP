@@ -1,0 +1,203 @@
+->->->->->->->->->->->->->->->->->->->->->->->->->->->->->-> My Implementation for Backend ->->->->->->->->->->->->->->->->->->->->->->->->->
+
+
+1) If a number between 1-10 is divisible by 3 then fail the notification (Important logic for failing notification)
+2) I'll use Rabbitmq and MySQL inside docker
+3) In docker compose file I'll integrate MySQL and Rabbitmq so that when my image is pulled through one command everything will be up and running
+4) I'll containerize my whole project to run in single command
+5) Need SCheduler for sending notification which will run every second
+6) I'll use Step and Job to execute bulk notification
+7) DTO level validation
+8) Logging using @Sl4j wherever needed
+
+
+
+SCHEMA DESIGN FOR NOTIFICATION SYSTEM ->
+
+1) notifications
+
+id -> Long primary key
+user_id -> id Long not null
+type -> ENUM("EMAIL", "SMS", "PUSH") not null
+message -> Varchar(200) not null
+schedule_time -> DateTime not null
+status -> ENUM("PENDING", "SENT", "FAILED", "RETRY") not null
+total_retries -> Integer
+last_retried_at -> DateTime
+sent_at -> DateTime
+created_at -> CreateTimeStamp
+updated_at -> UpdateTimeStamp
+
+2) notification_retries
+notification_id refernces notifications(id)
+retriedAt -> DateTime
+status -> ENUM("PENDING", "SENT", "FAILED", "RETRY")
+
+
+
+
+APIs ->
+
+1) Create Notification -> POST /api/notifications
+	body:{
+		"userId": 101,
+		"type": "EMAIL",
+		"message": "Welcome User",
+		"scheduleTime": "2026-05-28T10:00:00"
+	}
+	response(201):{
+		"notificationId": 1,
+		"status": true
+	}
+	response(500):{
+		"message":"Failed to schedule notification",
+		"status": false
+	}
+
+2) Get All Notifications -> GET /api/notifications?page=0&size=10&status=FAILED&type=EMAIL
+	response(200):{
+		"notificationId": 1,
+		"userId": 101,
+		"type": "EMAIL",
+		"message": "Welcome User",
+		"scheduleTime": "2026-05-28T10:00:00"
+		"status": true
+	}
+	response(500):{
+		"message":"Failed to fetch notifications",
+		"status": false
+	}
+
+3) Retry Notification -> POST /api/notifications/{id}/retry
+	response(200):{
+		"notificationId": 1,
+		"userId": 101,
+		"type": "EMAIL",
+		"message": "Welcome User",
+		"scheduleTime": "2026-05-28T10:00:00"
+		"status": true
+	}
+	response(500):{
+		"message":"Again Failed to schedule notification",
+		"status": false
+	}
+
+
+4) Get Counts -> GET /api/dashboard
+	response(200):{
+		"totalNotifications": 10,
+		"sentNotifications": 10,
+		"failedNotifications": 10,
+		"retryNotifications": 10,
+		"typeWiseStatistics": [
+    			"EMAIL": {
+      				"totalNotifications": 500,
+      				"sentNotifications": 450,
+      				"failedNotifications": 30,
+      				"retryNotifications": 20
+    			},
+    			"SMS": {
+      				"totalNotifications": 300,
+      				"sentNotifications": 250,
+      				"failedNotifications": 40,
+      				"retryNotifications": 10
+    			},
+    			"PUSH": {
+      				"totalNotifications": 200,
+      				"sentNotifications": 150,
+      				"failedNotifications": 30,
+      				"retryNotifications": 20
+    			}
+		]
+  }
+		"status": true
+	}
+	response(500):{
+		"message":"Failed to fetch counts",
+		"status": false
+	}
+
+
+
+Business Logics ->
+
+1) Retry Logic
+	Retry should only happen when: 
+		status == FAILED && retries <= 2 && LocalDateTime.now().isAFter(scheduledAt + 2minutes)
+		• Notification status is FAILED
+		• Retry count is less than 3
+		• Last retry was before 2 minutes
+
+2) Duplicate Notification Restriction
+	Notification fromDB = findFirstByUserIdOrderByCreationTimeDesc(userId)
+	// First check for null for all these fields then will put this logic
+	if(fromDB.getType().equals(dto.getType()) || fromDB.getMessage().equals(dto.getMessage()) || !now.isAfter(fromDb.getCreationTime() + 5minutes))return "Constraint Voilation";
+
+	// After this using HashMap I'll put each string as key and their repitions count as their values to easily check for 3 times duplicated word in single message
+	// Time Complexity -> O(N)
+
+	Same user cannot create:
+		• Same notification type
+		• Same message
+		• Within 5 minutes
+
+3) With my divisiblity check number logic system will fail approximately 30% notification and it'll be random...
+// As we're not updating schedule time so we dont need to handle that duplicate notification sending problem in case of retry and scheduler 
+
+
+
+
+
+->->->->->->->->->->->->->->->->->->->->->->->->->->->->->-> My Implementation for Frontend ->->->->->->->->->->->->->->->->->->->->->->->->->
+
+My Implementation ->
+
+1) I'll use Prime React for CARDS CHARTS DATATABLE FILTERS INPUTBOXES LOADING-INDICATORS TOASTIFY ICONS BUTTON
+2) I'll Implement redux toolkit to properly handle state
+3) I'll implement react-router-dom
+4) I'll use axios for API calls 
+5) My design is in dashboard page I'll put four cards which will show counts and just below it I'll have pie charts to show type wise statistics and through
+   this page only I'll call notifications listing page 
+6) Theme will be dark 
+7) Will make UI very light and User-Friendly
+8) Basic validation in frontend
+
+
+
+->->->->->->->->->->->->->->->->->->->->->->->->->->->->->-> My Implementation for Containerization ->->->->->->->->->->->->->->->->->->->->->->->->->
+
+My Implementation ->
+
+1) Firstly I'll Create docker-compose file which will have declaration of images to pull and run which are mysql, rabbitmq, my-application
+2) I'll dockerize my-application with all these to easily pull and run in other systems
+3) I'll push image in docker hub in public repository
+
+
+
+
+My Notes ->
+
+1) Added react dist files frontend inside java 
+2) Included HashRouter instead of BrowserRouter in react to avoid reload failure in react when served as static files in java
+3) Included @Version in backend to maintain transaction between threads of Scheduler and API requests
+4) Handled Batch Processing using pagination
+5) Added temporary listener to cross check if rabbitmq is trigerring the consumer or not
+
+
+Steps To Run -> 
+1st Method ->
+	1) Copy this file docker-compose.yml to your system
+	2) Run docker compose up -d 
+I have integrated frontend in static folder of java so it'll be served along with java also mysql and rabbitmq is there in docker compose file so when we run it everything will be automatically connected
+
+
+2nd Method ->
+	1) Pull Code in your system dist folder is already there in static folder of java just run java and frontend and backend will run combinely
+
+3rd Method -> 
+	1) Pull code in system just run mvn clean package it will make jar 
+	2) Run jar : java -jar notif-0.0.1-SNAPSHOT.jar
+
+4th Method -> 
+	1) Run java individually (mvn clean install)
+	2) Run React individually by installing (npm i) and run (npm run dev)
