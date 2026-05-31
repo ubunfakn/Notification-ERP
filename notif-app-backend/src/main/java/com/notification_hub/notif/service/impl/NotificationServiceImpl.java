@@ -15,6 +15,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -33,12 +35,12 @@ public class NotificationServiceImpl implements NotificationService {
 
         log.info("Validating Notification");
         notificationValidationService.validateDuplicateNotification(request);
-
+        LocalDateTime scheduleTime = request.getScheduleTime().withSecond(0).withNano(0);
         Notification notification = Notification.builder()
                 .userId(request.getUserId())
                 .type(request.getType())
                 .message(request.getMessage())
-                .scheduleTime(request.getScheduleTime())
+                .scheduleTime(scheduleTime)
                 .status(NotificationStatus.PENDING)
                 .version(0L)
                 .totalRetries(0)
@@ -112,12 +114,13 @@ public class NotificationServiceImpl implements NotificationService {
 
         notificationValidationService.validateDuplicateNotification(request);
 
+        LocalDateTime scheduleTime = request.getScheduleTime().withSecond(0).withNano(0);
         int updated = notificationRepo.updateNotification(
                 id,
                 request.getUserId(),
                 request.getType(),
                 request.getMessage(),
-                request.getScheduleTime()
+                scheduleTime
         );
 
         if (updated == 0) {

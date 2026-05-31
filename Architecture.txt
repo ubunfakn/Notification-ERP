@@ -21,7 +21,7 @@ user_id -> id Long not null
 type -> ENUM("EMAIL", "SMS", "PUSH") not null
 message -> Varchar(200) not null
 schedule_time -> DateTime not null
-status -> ENUM("PENDING", "SENT", "FAILED", "RETRYING") not null
+status -> ENUM("PENDING", "SENT", "FAILED", "RETRY") not null
 total_retries -> Integer
 last_retried_at -> DateTime
 sent_at -> DateTime
@@ -31,7 +31,7 @@ updated_at -> UpdateTimeStamp
 2) notification_retries
 notification_id refernces notifications(id)
 retriedAt -> DateTime
-status -> ENUM("PENDING", "SENT", "FAILED", "RETRYING")
+status -> ENUM("PENDING", "SENT", "FAILED", "RETRY")
 
 
 
@@ -89,7 +89,7 @@ APIs ->
 		"sentNotifications": 10,
 		"failedNotifications": 10,
 		"retryNotifications": 10,
-		"typeWiseStatistics": {
+		"typeWiseStatistics": [
     			"EMAIL": {
       				"totalNotifications": 500,
       				"sentNotifications": 450,
@@ -108,6 +108,7 @@ APIs ->
       				"failedNotifications": 30,
       				"retryNotifications": 20
     			}
+		]
   }
 		"status": true
 	}
@@ -141,6 +142,7 @@ Business Logics ->
 		• Within 5 minutes
 
 3) With my divisiblity check number logic system will fail approximately 30% notification and it'll be random...
+// As we're not updating schedule time so we dont need to handle that duplicate notification sending problem in case of retry and scheduler 
 
 
 
@@ -169,3 +171,33 @@ My Implementation ->
 1) Firstly I'll Create docker-compose file which will have declaration of images to pull and run which are mysql, rabbitmq, my-application
 2) I'll dockerize my-application with all these to easily pull and run in other systems
 3) I'll push image in docker hub in public repository
+
+
+
+
+My Notes ->
+
+1) Added react dist files frontend inside java 
+2) Included HashRouter instead of BrowserRouter in react to avoid reload failure in react when served as static files in java
+3) Included @Version in backend to maintain transaction between threads of Scheduler and API requests
+4) Handled Batch Processing using pagination
+5) Added temporary listener to cross check if rabbitmq is trigerring the consumer or not
+
+
+Steps To Run -> 
+1st Method ->
+	1) Copy this file docker-compose.yml to your system
+	2) Run docker compose up -d 
+I have integrated frontend in static folder of java so it'll be served along with java also mysql and rabbitmq is there in docker compose file so when we run it everything will be automatically connected
+
+
+2nd Method ->
+	1) Pull Code in your system dist folder is already there in static folder of java just run java and frontend and backend will run combinely
+
+3rd Method -> 
+	1) Pull code in system just run mvn clean package it will make jar 
+	2) Run jar : java -jar notif-0.0.1-SNAPSHOT.jar
+
+4th Method -> 
+	1) Run java individually (mvn clean install)
+	2) Run React individually by installing (npm i) and run (npm run dev)

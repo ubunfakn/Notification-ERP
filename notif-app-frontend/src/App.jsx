@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HashRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "./components/Navbar";
@@ -8,7 +8,7 @@ import Notifications from "./pages/NotificationsPage";
 
 const App = () => {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <div className="app-root">
         <Navbar />
         <main className="main-content">
@@ -26,7 +26,7 @@ const App = () => {
         theme="dark"
         toastStyle={{ background: "#0d1117", border: "1px solid #00e5ff33", color: "#e2e8f0" }}
       />
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 

@@ -462,13 +462,13 @@ const NotificationsPage = () => {
             className="p-button-text"
             onClick={() => setDialogOpen(false)}
           />
-          {/* <Button
+          <Button
             label={editTarget ? "Update" : "Schedule"}
             icon={editTarget ? "pi pi-check" : "pi pi-send"}
             className="cyan-btn"
             onClick={handleSave}
             loading={actionLoading}
-          /> */}
+          />
         </div>
       </Dialog>
     </div>

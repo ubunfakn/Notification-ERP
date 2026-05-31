@@ -28,7 +28,7 @@ public class SchedulerService {
 //    @Transactional
     public void executeEveryMinute() {
 
-        log.info("Notification scheduler started at {}", LocalDateTime.now());
+        log.info("Notification scheduler starting {}", LocalDateTime.now());
 
         int pageNumber = 0;
         Page<Notification> page;
@@ -38,7 +38,7 @@ public class SchedulerService {
             do {
                 page = notificationRepo.findByStatusAndScheduleTimeLessThanEqual(
                         NotificationStatus.PENDING,
-                        LocalDateTime.now(),
+                        LocalDateTime.now().plusSeconds(2),
                         PageRequest.of(pageNumber, BATCH_SIZE)
                 );
 
