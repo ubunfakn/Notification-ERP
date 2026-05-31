@@ -14,7 +14,7 @@ public class NotificationConsumer {
     public void consume(NotificationMessage message) {
 
         log.info(
-                "Message received from RabbitMQ. NotificationId={}",
+                "Message received from RabbitMQ for testing. NotificationId={}",
                 message.getNotificationId()
         );
 

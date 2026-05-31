@@ -20,6 +20,6 @@ public class DashboardController {
 
         DashboardResponse dashboardResponse =
                 this.dashboardService.getDashBoardCounts();
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(dashboardResponse);
     }
 }

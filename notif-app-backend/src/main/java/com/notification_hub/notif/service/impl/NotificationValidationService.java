@@ -42,7 +42,7 @@ public class NotificationValidationService {
                                     && !now.isAfter(existing.getCreatedAt().plusMinutes(5));
                     log.info("Notification created within 5 minutes {}" , withinFiveMinutes);
 
-                    if (sameType || sameMessage || withinFiveMinutes) {
+                    if (sameType && sameMessage && withinFiveMinutes) {
                         throw new IllegalArgumentException(
                                 "Duplicate notification restriction violated. " +
                                         "User cannot create same type, same message, or create another notification within 5 minutes.");

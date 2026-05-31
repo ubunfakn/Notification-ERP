@@ -452,6 +452,7 @@ html, body {
 
 .custom-dropdown.p-dropdown { width: 100% !important; }
 
+
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 @media (max-width: 1100px) {
   .stats-grid   { grid-template-columns: repeat(2, 1fr); }
@@ -486,4 +487,71 @@ button {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
+}
+
+/* Confirm Dialog Container */
+.p-confirm-dialog {
+  background: #0f172a !important;
+  border: 1px solid #1e293b !important;
+  border-radius: 16px !important;
+  min-width: 420px !important;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45) !important;
+}
+
+/* Header */
+.p-confirm-dialog .p-dialog-header {
+  background: #0f172a !important;
+  color: #fff !important;
+  padding: 1rem 1.5rem !important;
+  border-bottom: 1px solid #1e293b;
+}
+
+/* Content */
+.p-confirm-dialog .p-dialog-content {
+  background: #0f172a !important;
+  color: #e2e8f0 !important;
+  padding: 1.5rem !important;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+/* Message */
+.p-confirm-dialog-message {
+  font-size: 15px !important;
+  line-height: 1.5;
+}
+
+/* Footer */
+.p-confirm-dialog .p-dialog-footer {
+  background: #0f172a !important;
+  border-top: 1px solid #1e293b;
+  padding: 1rem 1.5rem !important;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* No button */
+.p-confirm-dialog .p-confirm-dialog-reject {
+  background: transparent !important;
+  color: #94a3b8 !important;
+  border: 1px solid #334155 !important;
+}
+
+/* Yes button */
+.p-confirm-dialog .p-confirm-dialog-accept {
+  background: #ef4444 !important;
+  border: none !important;
+  color: white !important;
+}
+
+.p-confirm-dialog .p-confirm-dialog-accept:hover {
+  background: #dc2626 !important;
+}
+
+/* Close icon */
+.p-confirm-dialog .p-dialog-header-icon {
+  color: #94a3b8 !important;
 }

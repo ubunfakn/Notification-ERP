@@ -4,7 +4,7 @@ import {
   createNotification,
   retryNotification,
   deleteNotification,
-  updateNotification,
+  // updateNotification,
 } from "../api/notificationApi";
 
 export const fetchNotifications = createAsyncThunk(
@@ -53,16 +53,16 @@ export const deleteOne = createAsyncThunk(
   }
 );
 
-export const updateOne = createAsyncThunk(
-  "notifications/update",
-  async ({ id, body }, { rejectWithValue }) => {
-    try {
-      return await updateNotification(id, body);
-    } catch (err) {
-      return rejectWithValue(err.message);
-    }
-  }
-);
+// export const updateOne = createAsyncThunk(
+//   "notifications/update",
+//   async ({ id, body }, { rejectWithValue }) => {
+//     try {
+//       return await updateNotification(id, body);
+//     } catch (err) {
+//       return rejectWithValue(err.message);
+//     }
+//   }
+// );
 
 const notificationsSlice = createSlice({
   name: "notifications",
@@ -101,10 +101,10 @@ const notificationsSlice = createSlice({
         state.list = state.list.filter(n => n.id !== action.payload);
         state.totalRecords = Math.max(0, state.totalRecords - 1);
       })
-      .addCase(updateOne.fulfilled, (state, action) => {
-        const idx = state.list.findIndex(n => n.id === action.payload?.id);
-        if (idx !== -1) state.list[idx] = action.payload;
-      });
+      // .addCase(updateOne.fulfilled, (state, action) => {
+      //   const idx = state.list.findIndex(n => n.id === action.payload?.id);
+      //   if (idx !== -1) state.list[idx] = action.payload;
+      // });
   },
 });
 

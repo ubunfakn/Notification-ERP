@@ -28,8 +28,9 @@ const dashboardSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchDashboard.fulfilled, (state, action) => {
+        console.log(action.payload)
         state.loading = false;
-        state.stats = action.payload;
+        state.stats = action.payload.data;
       })
       .addCase(fetchDashboard.rejected, (state, action) => {
         state.loading = false;

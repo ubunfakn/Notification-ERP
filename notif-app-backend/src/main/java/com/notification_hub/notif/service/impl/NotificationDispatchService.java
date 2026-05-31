@@ -2,14 +2,18 @@ package com.notification_hub.notif.service.impl;
 
 import com.notification_hub.notif.dto.NotificationMessage;
 import com.notification_hub.notif.entity.Notification;
+import com.notification_hub.notif.entity.NotificationRetry;
 import com.notification_hub.notif.enums.NotificationStatus;
 import com.notification_hub.notif.producer.NotificationProducer;
 import com.notification_hub.notif.repository.NotificationRepo;
+import com.notification_hub.notif.repository.NotificationRetryRepo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -17,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class NotificationDispatchService {
 
     private final NotificationRepo notificationRepo;
+    private final NotificationRetryRepo notificationRetryRepo;
     private final NotificationProducer notificationProducer;
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -56,7 +61,7 @@ public class NotificationDispatchService {
 
                 fresh.setStatus(NotificationStatus.FAILED);
                 notificationRepo.save(fresh);
-
+                updateRetry(notification.getId(), NotificationStatus.FAILED);
                 log.warn("Notification id={} marked FAILED (simulated failure)",
                         fresh.getId());
 
@@ -78,6 +83,7 @@ public class NotificationDispatchService {
 
             fresh.setStatus(NotificationStatus.SENT);
             notificationRepo.save(fresh);
+            updateRetry(notification.getId(), NotificationStatus.SENT);
 
             log.info("Notification id={} successfully SENT",
                     fresh.getId());
@@ -91,6 +97,7 @@ public class NotificationDispatchService {
             try {
                 fresh.setStatus(NotificationStatus.FAILED);
                 notificationRepo.save(fresh);
+                updateRetry(notification.getId(), NotificationStatus.FAILED);
 
                 log.info("Notification id={} marked FAILED",
                         fresh.getId());
@@ -103,5 +110,16 @@ public class NotificationDispatchService {
                 );
             }
         }
+    }
+
+    private void updateRetry(Long notificationId, NotificationStatus status){
+        Notification notification = this.notificationRepo.findById(notificationId).orElse(null);
+        assert notification != null;
+        List<NotificationRetry> retriedNotifications = notification
+                .getRetries()
+                .stream()
+                .peek(notificationRetry -> notificationRetry.setStatus(status))
+                .toList();
+        this.notificationRetryRepo.saveAll(retriedNotifications);
     }
 }

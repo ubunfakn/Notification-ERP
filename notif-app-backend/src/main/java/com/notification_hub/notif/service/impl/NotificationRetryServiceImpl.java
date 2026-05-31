@@ -74,12 +74,13 @@ public class NotificationRetryServiceImpl implements NotificationRetryService {
                 .retriedAt(now)
                 .status(NotificationStatus.PROCESSING)
                 .build();
-        log.info("Retry object Prepared, Saving with status PENDING");
+        log.info("Retry object Prepared, Saving with status PROCESSING");
 
         NotificationRetry savedRetry =
                 notificationRetryRepo.save(retry);
 
         notification.setTotalRetries(retryCount + 1);
+        notification.setStatus(NotificationStatus.PROCESSING);
         notificationRepo.save(notification);
         log.info("Retry processed and notification saved with new status {}", notification.getStatus());
 

@@ -3,6 +3,7 @@ package com.notification_hub.notif.entity;
 import com.notification_hub.notif.enums.NotificationStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
@@ -24,6 +25,7 @@ public class NotificationRetry {
     private Notification notification;
 
     @Column(name = "retried_at", nullable = false)
+    @UpdateTimestamp
     private LocalDateTime retriedAt;
 
     @Enumerated(EnumType.STRING)

@@ -1,5 +1,6 @@
 package com.notification_hub.notif.repository;
 
+import com.notification_hub.notif.dto.TypeWiseStatisticsProjection;
 import com.notification_hub.notif.entity.Notification;
 import com.notification_hub.notif.enums.NotificationStatus;
 import com.notification_hub.notif.enums.NotificationType;
@@ -19,16 +20,30 @@ import java.util.Optional;
 public interface NotificationRepo extends JpaRepository<Notification, Long> {
 
     @Query("""
-            SELECT n
-            FROM Notification n
-            WHERE (:type IS NULL OR n.type = :type)
-              AND (:status IS NULL OR n.status = :status)
-              AND (
-                    :keyword IS NULL
-                    OR LOWER(n.message) LIKE LOWER(CONCAT('%', :keyword, '%'))
-                    OR (:userId IS NOT NULL AND n.userId = :userId)
+        SELECT DISTINCT n
+        FROM Notification n
+        WHERE (:type IS NULL OR n.type = :type)
+          AND (
+                :status IS NULL
+                OR (
+                    :status <> com.notification_hub.notif.enums.NotificationStatus.RETRY
+                    AND n.status = :status
                 )
-            """)
+                OR (
+                    :status = com.notification_hub.notif.enums.NotificationStatus.RETRY
+                    AND EXISTS (
+                        SELECT 1
+                        FROM NotificationRetry nr
+                        WHERE nr.notification.id = n.id
+                    )
+                )
+              )
+          AND (
+                :keyword IS NULL
+                OR LOWER(n.message) LIKE LOWER(CONCAT('%', :keyword, '%'))
+                OR (:userId IS NOT NULL AND n.userId = :userId)
+              )
+        """)
     Page<Notification> findFilteredNotifications(
             @Param("type") NotificationType type,
             @Param("status") NotificationStatus status,
@@ -73,4 +88,19 @@ public interface NotificationRepo extends JpaRepository<Notification, Long> {
             @Param("message") String message,
             @Param("scheduleTime") LocalDateTime scheduleTime
     );
+
+    long countByStatus(NotificationStatus status);
+
+    long count();
+
+    @Query("""
+        SELECT
+            n.type as type,
+            COUNT(n) as totalNotifications,
+            SUM(CASE WHEN n.status = com.notification_hub.notif.enums.NotificationStatus.SENT THEN 1 ELSE 0 END) as sentNotifications,
+            SUM(CASE WHEN n.status = com.notification_hub.notif.enums.NotificationStatus.FAILED THEN 1 ELSE 0 END) as failedNotifications
+        FROM Notification n
+        GROUP BY n.type
+    """)
+    List<TypeWiseStatisticsProjection> getTypeWiseStatistics();
 }

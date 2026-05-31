@@ -5,7 +5,7 @@ import {
   fetchNotifications,
   retryOne,
   deleteOne,
-  updateOne,
+  // updateOne,
   createNewNotification,
 } from "../store/notificationSlice";
 import { DataTable } from "primereact/datatable";
@@ -145,16 +145,16 @@ const NotificationsPage = () => {
           : form.scheduleTime,
     };
     try {
-      if (editTarget) {
-        await dispatch(
-          updateOne({ id: editTarget.id, body }),
-        ).unwrap();
-        toast.success("Notification updated successfully");
-      } else {
+      // if (editTarget) {
+      //   await dispatch(
+      //     updateOne({ id: editTarget.id, body }),
+      //   ).unwrap();
+      //   toast.success("Notification updated successfully");
+      // } else {
         await dispatch(createNewNotification(body)).unwrap();
         toast.success("Notification scheduled!");
         loadData();
-      }
+      // }
       setDialogOpen(false);
     } catch(error) {
       toast.error(error);
@@ -171,8 +171,8 @@ const NotificationsPage = () => {
         try {
           await dispatch(deleteOne(row.id)).unwrap();
           toast.success("Notification deleted");
-        } catch {
-          toast.error("Delete failed");
+        } catch(error) {
+          toast.error(error);
         }
       },
     });
@@ -183,8 +183,8 @@ const NotificationsPage = () => {
     try {
       await dispatch(retryOne(row.id)).unwrap();
       toast.success(`Notification #${row.id} queued for retry`);
-    } catch {
-      toast.error("Retry failed");
+    } catch(error) {
+      toast.error(error);
     } finally {
       setRetryingId(null);
     }
@@ -241,30 +241,31 @@ const NotificationsPage = () => {
 
   const actionsTemplate = (row) => (
     <div className="cell-actions">
-      {row.status === "FAILED" && (
-        <Button
-          icon="pi pi-refresh"
-          className="p-button-rounded p-button-text retry-btn"
-          tooltip="Retry"
-          tooltipOptions={{ position: "top" }}
-          loading={retryingId === row.id}
-          onClick={() => handleRetry(row)}
-        />
-      )}
-      <Button
+      
+      {/* <Button
         icon="pi pi-pencil"
         className="p-button-rounded p-button-text edit-btn"
         tooltip="Edit"
         tooltipOptions={{ position: "top" }}
         onClick={() => openEdit(row)}
-      />
+      /> */}
       <Button
         icon="pi pi-trash"
         className="p-button-rounded p-button-text delete-btn"
-        tooltip="Delete"
+        // tooltip="Delete"
         tooltipOptions={{ position: "top" }}
         onClick={() => handleDelete(row)}
       />
+      {row.status === "FAILED" && (
+        <Button
+          icon="pi pi-refresh"
+          className="p-button-rounded p-button-text retry-btn"
+          // tooltip="Retry"
+          tooltipOptions={{ position: "top" }}
+          loading={retryingId === row.id}
+          onClick={() => handleRetry(row)}
+        />
+      )}
     </div>
   );
 
@@ -461,13 +462,13 @@ const NotificationsPage = () => {
             className="p-button-text"
             onClick={() => setDialogOpen(false)}
           />
-          <Button
+          {/* <Button
             label={editTarget ? "Update" : "Schedule"}
             icon={editTarget ? "pi pi-check" : "pi pi-send"}
             className="cyan-btn"
             onClick={handleSave}
             loading={actionLoading}
-          />
+          /> */}
         </div>
       </Dialog>
     </div>
