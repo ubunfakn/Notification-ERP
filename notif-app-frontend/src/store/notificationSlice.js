@@ -10,8 +10,9 @@ import {
 export const fetchNotifications = createAsyncThunk(
   "notifications/fetchAll",
   async (params, { rejectWithValue }) => {
-    try {
-      return await getAllNotifications(params);
+    try { 
+      const data = await getAllNotifications(params);
+      return data?.data
     } catch (err) {
       return rejectWithValue(err.message);
     }
@@ -80,8 +81,9 @@ const notificationsSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
+        console.log(action.payload)
         state.loading = false;
-        state.list = action.payload?.content ?? action.payload ?? [];
+        state.list = action.payload?.notifications ?? action.payload ?? [];
         state.totalRecords = action.payload?.totalElements ?? state.list.length;
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
@@ -91,16 +93,16 @@ const notificationsSlice = createSlice({
       .addCase(retryOne.pending, (state) => { state.actionLoading = true; })
       .addCase(retryOne.fulfilled, (state, action) => {
         state.actionLoading = false;
-        const idx = state.list.findIndex(n => n.notificationId === action.payload?.notificationId);
+        const idx = state.list.findIndex(n => n.id === action.payload?.id);
         if (idx !== -1) state.list[idx] = action.payload;
       })
       .addCase(retryOne.rejected, (state) => { state.actionLoading = false; })
       .addCase(deleteOne.fulfilled, (state, action) => {
-        state.list = state.list.filter(n => n.notificationId !== action.payload);
+        state.list = state.list.filter(n => n.id !== action.payload);
         state.totalRecords = Math.max(0, state.totalRecords - 1);
       })
       .addCase(updateOne.fulfilled, (state, action) => {
-        const idx = state.list.findIndex(n => n.notificationId === action.payload?.notificationId);
+        const idx = state.list.findIndex(n => n.id === action.payload?.id);
         if (idx !== -1) state.list[idx] = action.payload;
       });
   },

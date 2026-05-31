@@ -3,6 +3,7 @@ package com.notification_hub.notif.service.impl;
 import com.notification_hub.notif.entity.Notification;
 import com.notification_hub.notif.enums.NotificationStatus;
 import com.notification_hub.notif.repository.NotificationRepo;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -21,25 +22,56 @@ public class SchedulerService {
 
     private final NotificationRepo notificationRepo;
     private final NotificationDispatchService dispatchService;
+    private final NotificationClaimService notificationClaimService;
 
-    @Scheduled(fixedRate = 1000)
-    public void executeEverySecond() {
+    @Scheduled(cron = "0 * * * * *")
+//    @Transactional
+    public void executeEveryMinute() {
+
+        log.info("Notification scheduler started at {}", LocalDateTime.now());
 
         int pageNumber = 0;
         Page<Notification> page;
+        int processedCount = 0;
 
-        do {
-            page = notificationRepo.findByStatusAndScheduleTimeLessThanEqual(
-                    NotificationStatus.PENDING,
-                    LocalDateTime.now(),
-                    PageRequest.of(pageNumber, BATCH_SIZE)
-            );
+        try {
+            do {
+                page = notificationRepo.findByStatusAndScheduleTimeLessThanEqual(
+                        NotificationStatus.PENDING,
+                        LocalDateTime.now(),
+                        PageRequest.of(pageNumber, BATCH_SIZE)
+                );
 
-            page.getContent()
-                    .forEach(dispatchService::dispatch);
+                log.info("Processing page {} with {} notifications",
+                        pageNumber,
+                        page.getNumberOfElements());
 
-            pageNumber++;
+                page.getContent().forEach(notification -> {
+                    try {
+                        boolean claimed = notificationClaimService.claim(notification.getId()); // commits immediately
 
-        } while (page.hasNext());
+                        if (claimed) {
+                            log.info("Claimed notification id={}", notification.getId());
+                            dispatchService.dispatch(notification); // REQUIRES_NEW sees PROCESSING ✓
+                        } else {
+                            log.warn("Notification id={} already claimed", notification.getId());
+                        }
+
+                    } catch (Exception ex) {
+                        log.error("Error processing notification id={}", notification.getId(), ex);
+                    }
+                });
+
+                processedCount += page.getNumberOfElements();
+                pageNumber++;
+
+            } while (page.hasNext());
+
+            log.info("Scheduler completed. Total notifications scanned={}",
+                    processedCount);
+
+        } catch (Exception ex) {
+            log.error("Fatal error in notification scheduler", ex);
+        }
     }
 }

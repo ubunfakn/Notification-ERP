@@ -1,7 +1,13 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { fetchNotifications, retryOne, deleteOne, updateOne, createNewNotification } from "../store/notificationSlice";
+import {
+  fetchNotifications,
+  retryOne,
+  deleteOne,
+  updateOne,
+  createNewNotification,
+} from "../store/notificationSlice";
 import { DataTable } from "primereact/datatable";
 import { Column } from "primereact/column";
 import { Button } from "primereact/button";
@@ -14,14 +20,14 @@ import { toast } from "react-toastify";
 import InputField from "../components/InputField";
 
 const TYPE_OPTIONS = [
-  { label: "All Types", value: "" },
+  // { label: "All Types", value: "" },
   { label: "Email", value: "EMAIL" },
   { label: "SMS", value: "SMS" },
   { label: "Push", value: "PUSH" },
 ];
 
 const STATUS_OPTIONS = [
-  { label: "All Status", value: "" },
+  // { label: "All Status", value: null },
   { label: "Sent", value: "SENT" },
   { label: "Failed", value: "FAILED" },
   { label: "Retry", value: "RETRY" },
@@ -30,15 +36,15 @@ const STATUS_OPTIONS = [
 const PAGE_SIZE = 10;
 
 const statusTagMap = {
-  SENT:   { severity: "success", icon: "pi-check-circle" },
-  FAILED: { severity: "danger",  icon: "pi-times-circle" },
-  RETRY:  { severity: "warning", icon: "pi-refresh" },
+  SENT: { severity: "success", icon: "pi-check-circle" },
+  FAILED: { severity: "danger", icon: "pi-times-circle" },
+  RETRY: { severity: "warning", icon: "pi-refresh" },
 };
 
 const typeIconMap = {
   EMAIL: "pi-envelope",
-  SMS:   "pi-mobile",
-  PUSH:  "pi-bell",
+  SMS: "pi-mobile",
+  PUSH: "pi-bell",
 };
 
 const emptyForm = { userId: "", type: "", message: "", scheduleTime: null };
@@ -47,11 +53,13 @@ const NotificationsPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { list, totalRecords, loading, actionLoading } = useSelector((s) => s.notifications);
+  const { list, totalRecords, loading, actionLoading } = useSelector(
+    (s) => s.notifications,
+  );
 
   const [filters, setFilters] = useState({
     status: searchParams.get("status") ?? "",
-    type:   searchParams.get("type") ?? "",
+    type: searchParams.get("type") ?? "",
     search: "",
   });
   const [page, setPage] = useState(0);
@@ -62,16 +70,20 @@ const NotificationsPage = () => {
   const [retryingId, setRetryingId] = useState(null);
 
   const loadData = useCallback(() => {
-    dispatch(fetchNotifications({ 
-      page, 
-      size: PAGE_SIZE, 
-      status: filters.status || undefined, 
-      type: filters.type || undefined, 
-      keyword: filters.search || undefined 
-    }));
+    dispatch(
+      fetchNotifications({
+        page,
+        size: PAGE_SIZE,
+        status: filters.status || undefined,
+        type: filters.type || undefined,
+        keyword: filters.search || undefined,
+      }),
+    );
   }, [dispatch, page, filters.status, filters.type]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // sync URL filters
   useEffect(() => {
@@ -117,17 +129,26 @@ const NotificationsPage = () => {
 
   const handleSave = async () => {
     if (!validate()) return;
+    const formatLocalDateTime = (date) => {
+      const pad = (n) => String(n).padStart(2, "0");
+
+      return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+    };
+
     const body = {
       userId: Number(form.userId),
       type: form.type,
       message: form.message,
-      scheduleTime: form.scheduleTime instanceof Date
-        ? form.scheduleTime.toISOString()
-        : form.scheduleTime,
+      scheduleTime:
+        form.scheduleTime instanceof Date
+          ? formatLocalDateTime(form.scheduleTime)
+          : form.scheduleTime,
     };
     try {
       if (editTarget) {
-        await dispatch(updateOne({ id: editTarget.notificationId, body })).unwrap();
+        await dispatch(
+          updateOne({ id: editTarget.id, body }),
+        ).unwrap();
         toast.success("Notification updated successfully");
       } else {
         await dispatch(createNewNotification(body)).unwrap();
@@ -135,20 +156,20 @@ const NotificationsPage = () => {
         loadData();
       }
       setDialogOpen(false);
-    } catch {
-      toast.error("Operation failed, please try again.");
+    } catch(error) {
+      toast.error(error);
     }
   };
 
   const handleDelete = (row) => {
     confirmDialog({
-      message: `Delete notification #${row.notificationId}? This cannot be undone.`,
+      message: `Delete notification #${row.id}? This cannot be undone.`,
       header: "Confirm Delete",
       icon: "pi pi-trash",
       acceptClassName: "p-button-danger",
       accept: async () => {
         try {
-          await dispatch(deleteOne(row.notificationId)).unwrap();
+          await dispatch(deleteOne(row.id)).unwrap();
           toast.success("Notification deleted");
         } catch {
           toast.error("Delete failed");
@@ -158,10 +179,10 @@ const NotificationsPage = () => {
   };
 
   const handleRetry = async (row) => {
-    setRetryingId(row.notificationId);
+    setRetryingId(row.id);
     try {
-      await dispatch(retryOne(row.notificationId)).unwrap();
-      toast.success(`Notification #${row.notificationId} queued for retry`);
+      await dispatch(retryOne(row.id)).unwrap();
+      toast.success(`Notification #${row.id} queued for retry`);
     } catch {
       toast.error("Retry failed");
     } finally {
@@ -173,13 +194,13 @@ const NotificationsPage = () => {
     ? list.filter(
         (n) =>
           n.message?.toLowerCase().includes(filters.search.toLowerCase()) ||
-          String(n.userId).includes(filters.search)
+          String(n.userId).includes(filters.search),
       )
     : list;
 
   // ── Column Templates ──────────────────────────────────────────────────────
   const idTemplate = (row) => (
-    <span className="cell-id">#{row.notificationId}</span>
+    <span className="cell-id">#{row.id}</span>
   );
 
   const typeTemplate = (row) => (
@@ -190,7 +211,10 @@ const NotificationsPage = () => {
   );
 
   const statusTemplate = (row) => {
-    const cfg = statusTagMap[row.status] ?? { severity: "info", icon: "pi-question" };
+    const cfg = statusTagMap[row.status] ?? {
+      severity: "info",
+      icon: "pi-question",
+    };
     return (
       <Tag
         value={row.status}
@@ -203,7 +227,10 @@ const NotificationsPage = () => {
 
   const scheduleTemplate = (row) =>
     row.scheduleTime
-      ? new Date(row.scheduleTime).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })
+      ? new Date(row.scheduleTime).toLocaleString("en-IN", {
+          dateStyle: "medium",
+          timeStyle: "short",
+        })
       : "—";
 
   const messageTemplate = (row) => (
@@ -220,7 +247,7 @@ const NotificationsPage = () => {
           className="p-button-rounded p-button-text retry-btn"
           tooltip="Retry"
           tooltipOptions={{ position: "top" }}
-          loading={retryingId === row.notificationId}
+          loading={retryingId === row.id}
           onClick={() => handleRetry(row)}
         />
       )}
@@ -242,7 +269,14 @@ const NotificationsPage = () => {
   );
 
   const FORM_FIELDS = [
-    { key: "userId", label: "User ID", type: "text", icon: "pi-user", placeholder: "e.g. 101", required: true },
+    {
+      key: "userId",
+      label: "User ID",
+      type: "text",
+      icon: "pi-user",
+      placeholder: "e.g. 101",
+      required: true,
+    },
     {
       key: "type",
       label: "Notification Type",
@@ -250,8 +284,19 @@ const NotificationsPage = () => {
       options: TYPE_OPTIONS.filter((o) => o.value),
       required: true,
     },
-    { key: "scheduleTime", label: "Schedule Time", type: "calendar", required: true },
-    { key: "message", label: "Message", type: "textarea", placeholder: "Enter notification message…", required: true },
+    {
+      key: "scheduleTime",
+      label: "Schedule Time",
+      type: "calendar",
+      required: true,
+    },
+    {
+      key: "message",
+      label: "Message",
+      type: "textarea",
+      placeholder: "Enter notification message…",
+      required: true,
+    },
   ];
 
   return (
@@ -292,7 +337,7 @@ const NotificationsPage = () => {
           onChange={(v) => setFilter("search", v)}
           icon="pi-search"
           className="filter-search"
-          style={{padding:"10px"}}
+          style={{ padding: "10px" }}
         />
         <InputField
           type="dropdown"
@@ -334,17 +379,38 @@ const NotificationsPage = () => {
         ) : (
           <DataTable
             value={filteredList}
-            emptyMessage={<div className="empty-state"><i className="pi pi-inbox" /><span>No notifications found</span></div>}
+            emptyMessage={
+              <div className="empty-state">
+                <i className="pi pi-inbox" />
+                <span>No notifications found</span>
+              </div>
+            }
             className="notif-table"
             rowClassName={(row) => `row-status-${row?.status?.toLowerCase()}`}
           >
             <Column header="ID" body={idTemplate} style={{ width: "80px" }} />
             <Column field="userId" header="User ID" style={{ width: "90px" }} />
-            <Column header="Type" body={typeTemplate} style={{ width: "110px" }} />
+            <Column
+              header="Type"
+              body={typeTemplate}
+              style={{ width: "110px" }}
+            />
             <Column header="Message" body={messageTemplate} />
-            <Column header="Scheduled" body={scheduleTemplate} style={{ width: "180px" }} />
-            <Column header="Status" body={statusTemplate} style={{ width: "110px" }} />
-            <Column header="Actions" body={actionsTemplate} style={{ width: "140px" }} />
+            <Column
+              header="Scheduled"
+              body={scheduleTemplate}
+              style={{ width: "180px" }}
+            />
+            <Column
+              header="Status"
+              body={statusTemplate}
+              style={{ width: "110px" }}
+            />
+            <Column
+              header="Actions"
+              body={actionsTemplate}
+              style={{ width: "140px" }}
+            />
           </DataTable>
         )}
       </div>
@@ -366,16 +432,18 @@ const NotificationsPage = () => {
         onHide={() => setDialogOpen(false)}
         header={
           <span className="dialog-header">
-            <i className={`pi ${editTarget ? "pi-pencil" : "pi-plus-circle"}`} />
+            <i
+              className={`pi ${editTarget ? "pi-pencil" : "pi-plus-circle"}`}
+            />
             {editTarget ? "Edit Notification" : "New Notification"}
           </span>
         }
         className="notif-dialog"
-        style={{ width: "480px", padding:"18px" }}
+        style={{ width: "480px", padding: "18px" }}
         modal
         draggable={false}
       >
-        <div className="dialog-body" style={{marginTop:"14px"}}>
+        <div className="dialog-body" style={{ marginTop: "14px" }}>
           {FORM_FIELDS.map(({ key, ...fieldProps }) => (
             <InputField
               key={key}

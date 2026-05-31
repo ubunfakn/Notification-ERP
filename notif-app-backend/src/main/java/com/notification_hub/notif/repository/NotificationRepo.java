@@ -3,10 +3,12 @@ package com.notification_hub.notif.repository;
 import com.notification_hub.notif.entity.Notification;
 import com.notification_hub.notif.enums.NotificationStatus;
 import com.notification_hub.notif.enums.NotificationType;
+import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -31,7 +33,7 @@ public interface NotificationRepo extends JpaRepository<Notification, Long> {
             @Param("type") NotificationType type,
             @Param("status") NotificationStatus status,
             @Param("keyword") String keyword,
-            @Param("keyword") Long userId,
+            @Param("userId") Long userId,
             Pageable pageable
     );
 
@@ -41,5 +43,34 @@ public interface NotificationRepo extends JpaRepository<Notification, Long> {
             NotificationStatus status,
             LocalDateTime scheduleTime,
             Pageable pageable
+    );
+
+    @Modifying
+    @Query("""
+    UPDATE Notification n
+    SET n.status = 'PROCESSING', n.version = n.version + 1
+    WHERE n.id = :id AND n.status = 'PENDING'
+""")
+    int claimNotification(@Param("id") Long id);
+
+    @Modifying(
+            clearAutomatically = true,
+            flushAutomatically = true
+    )
+    @Transactional
+    @Query("""
+    UPDATE Notification n SET
+        n.userId = :userId,
+        n.type = :type,
+        n.message = :message,
+        n.scheduleTime = :scheduleTime
+    WHERE n.id = :id AND n.status = 'PENDING'
+""")
+    int updateNotification(
+            @Param("id") Long id,
+            @Param("userId") Long userId,
+            @Param("type") NotificationType type,
+            @Param("message") String message,
+            @Param("scheduleTime") LocalDateTime scheduleTime
     );
 }

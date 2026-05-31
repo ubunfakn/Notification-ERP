@@ -2,6 +2,7 @@ package com.notification_hub.notif.service.impl;
 
 import com.notification_hub.notif.dto.*;
 import com.notification_hub.notif.entity.Notification;
+import com.notification_hub.notif.enums.NotificationStatus;
 import com.notification_hub.notif.exception.ResourceNotFoundException;
 import com.notification_hub.notif.repository.NotificationRepo;
 import com.notification_hub.notif.service.NotificationService;
@@ -33,11 +34,17 @@ public class NotificationServiceImpl implements NotificationService {
         log.info("Validating Notification");
         notificationValidationService.validateDuplicateNotification(request);
 
-        Notification notification =
-                modelMapper.map(request, Notification.class);
+        Notification notification = Notification.builder()
+                .userId(request.getUserId())
+                .type(request.getType())
+                .message(request.getMessage())
+                .scheduleTime(request.getScheduleTime())
+                .status(NotificationStatus.PENDING)
+                .version(0L)
+                .totalRetries(0)
+                .build();
 
-        Notification savedNotification =
-                notificationRepo.save(notification);
+        Notification savedNotification = notificationRepo.save(notification);
         log.info("Notification saved successfully with id {}", savedNotification.getId());
 
         return modelMapper.map(savedNotification, NotificationResponse.class);
@@ -98,20 +105,29 @@ public class NotificationServiceImpl implements NotificationService {
         Notification notification = notificationRepo.findById(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("Notification not found with id: " + id));
-        log.info("Notification found with id {}", id);
 
-        log.info("Validating notification");
+        if (notification.getStatus() != NotificationStatus.PENDING) {
+            throw new RuntimeException("Cannot update notification with status: " + notification.getStatus());
+        }
+
         notificationValidationService.validateDuplicateNotification(request);
 
-        log.info("Preparing object to update");
-        notification.setUserId(request.getUserId());
-        notification.setType(request.getType());
-        notification.setMessage(request.getMessage());
-        notification.setScheduleTime(request.getScheduleTime());
+        int updated = notificationRepo.updateNotification(
+                id,
+                request.getUserId(),
+                request.getType(),
+                request.getMessage(),
+                request.getScheduleTime()
+        );
 
-        Notification updatedNotification = notificationRepo.save(notification);
-        log.info("Notification updated successfully");
-        return modelMapper.map(updatedNotification, NotificationResponse.class);
+        if (updated == 0) {
+            throw new RuntimeException("Update failed, notification may have been processed");
+        }
+
+        return modelMapper.map(
+                notificationRepo.findById(id).orElseThrow(),
+                NotificationResponse.class
+        );
     }
 
     @Override

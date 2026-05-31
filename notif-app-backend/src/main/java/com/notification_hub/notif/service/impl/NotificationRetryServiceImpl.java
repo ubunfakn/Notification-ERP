@@ -24,6 +24,7 @@ public class NotificationRetryServiceImpl implements NotificationRetryService {
     private final NotificationRepo notificationRepo;
     private final ModelMapper modelMapper;
     private final NotificationDispatchService notificationDispatchService;
+    private final NotificationClaimService notificationClaimService;
 
     @Override
     public NotificationRetryResponse retryNotification(Long id) {
@@ -71,7 +72,7 @@ public class NotificationRetryServiceImpl implements NotificationRetryService {
         NotificationRetry retry = NotificationRetry.builder()
                 .notification(notification)
                 .retriedAt(now)
-                .status(NotificationStatus.PENDING)
+                .status(NotificationStatus.PROCESSING)
                 .build();
         log.info("Retry object Prepared, Saving with status PENDING");
 

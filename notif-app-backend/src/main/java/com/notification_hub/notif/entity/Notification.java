@@ -23,6 +23,9 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Version
+    private Long version = 0l;
+
     @Column(name = "user_id", nullable = false)
     private Long userId;
 

@@ -1,8 +1,6 @@
 package com.notification_hub.notif.controller;
 
 import com.notification_hub.notif.dto.*;
-import com.notification_hub.notif.enums.NotificationStatus;
-import com.notification_hub.notif.enums.NotificationType;
 import com.notification_hub.notif.service.NotificationRetryService;
 import com.notification_hub.notif.service.NotificationService;
 import jakarta.validation.Valid;
@@ -13,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/notifications")
+@CrossOrigin("*")
 @RequiredArgsConstructor
 public class NotificationController {
 
@@ -57,7 +56,7 @@ public class NotificationController {
 
         NotificationResponse notificationResponse =
                 this.notificationService.updateNotif(id, request);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(notificationResponse);
     }
 
     // Delete Notification
@@ -67,7 +66,7 @@ public class NotificationController {
 
         ApiResponse apiResponse =
                 this.notificationService.deleteNotifById(id);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(apiResponse);
     }
 
     // Retry Notification
@@ -77,6 +76,6 @@ public class NotificationController {
 
         NotificationRetryResponse notificationRetryResponse =
                 this.notificationRetryService.retryNotification(id);
-        return ResponseEntity.ok(null);
+        return ResponseEntity.ok(notificationRetryResponse);
     }
 }
