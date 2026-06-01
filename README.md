@@ -93,7 +93,6 @@ The React frontend is compiled and bundled inside the Spring Boot static resourc
 2. Scheduler runs every second → picks up `PENDING` notifications whose `scheduleTime` has passed
 3. Notifications are published to a **RabbitMQ queue**
 4. Consumer picks from the queue → checks divisibility logic → marks `SENT` or `FAILED`
-5. Failed notifications are retried automatically based on retry logic
 
 ---
 
