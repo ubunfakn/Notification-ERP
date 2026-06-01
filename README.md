@@ -304,7 +304,7 @@ Manually triggers a retry for a specific failed notification.
 The system simulates real-world delivery failures using a divisibility check:
 
 ```
-if (userId % randomNumber(1–10) == 0 && randomNumber is divisible by 3)
+if (randomNumber is divisible by 3)
     → Mark notification as FAILED
 ```
 
@@ -332,7 +332,7 @@ Before creating a new notification, the system fetches the most recent notificat
 latestNotification = findFirstByUserIdOrderByCreatedAtDesc(userId)
 ```
 
-If the latest notification exists and **any** of the following is true, creation is **rejected**:
+If the latest notification exists and **all** of the following is true, creation is **rejected**:
 
 | Condition | Description |
 |---|---|
@@ -604,11 +604,10 @@ The React app is a dark-themed, single-page application with two main views:
 
 ### Scheduler
 
-A `@Scheduled` task runs **every second** and:
+A `@Scheduled` task runs **every minute** and:
 
 1. Queries all `PENDING` notifications whose `scheduleTime <= now()`
 2. Publishes them in batches to the RabbitMQ queue
-3. Also picks up `FAILED` notifications eligible for retry (see [Retry Logic](#retry-logic))
 
 ---
 
@@ -643,8 +642,6 @@ The **consumer** (listener) receives messages, processes them, and updates statu
 
 - The `@Version` annotation on the `Notification` entity ensures **optimistic locking**, preventing race conditions when the Scheduler and a manual API retry update the same row simultaneously.
 - The React `dist` build is committed inside `src/main/resources/static/`, so a backend-only build serves the full application without needing Node.js.
-- The Docker image is published to Docker Hub as a public repository, making Method 1 a zero-setup option for anyone with Docker installed.
-
 ---
 
 ## License
